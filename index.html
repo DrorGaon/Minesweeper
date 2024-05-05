@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Minesweeper</title>
+</head>
+<body onload="onInit()">
+    <h1>Minesweeper</h1>
+    <div class="hud">
+        <p>Choose difficulty</p>
+        <button onclick="setDifficulty(this)">Easy</button>
+        <button onclick="setDifficulty(this)">Medium</button>
+        <button onclick="setDifficulty(this)">Hard</button>
+    </div>
+
+    <div class="board" oncontextmenu="return false"></div>
+
+    <script src="script.js"></script>
+    <script src="utils.js"></script>
+
+    <div class="footer">Made by Dror Gaon</div>
+</body>
+</html>
