@@ -1,0 +1,116 @@
+*{
+    box-sizing: border-box;
+}
+
+:root{
+    --background-clr: rgb(225, 225, 225);
+    
+    --border-color: black;
+    --text-color: black;
+
+    --cell-clr: rgb(194, 194, 194);
+    --revealed-cell-clr: rgb(185, 185, 185);
+    --marked-cell-clr: rgb(189, 189, 189);
+}
+
+body{
+    margin: 0;
+
+    background-color: var(--background-clr);
+    color: var(--text-color);
+
+    text-align: center;
+}
+
+.smiley{
+    width: 110px;
+    font-size: 80px;
+
+    margin: 1px auto 10px ;
+
+    cursor: pointer;
+}
+
+table{
+    font-weight: bold;
+
+    border: 2px solid var(--border-color);
+
+    padding: 5px;
+
+    margin: 20px auto;
+}
+
+td{
+    background-color: var(--cell-clr);
+    text-align: center;
+
+    width: 30px;
+    height: 30px;
+
+    border-top:3px solid white ;
+    border-right:3px solid gray ;
+    border-bottom:3px solid gray ;
+    border-left: 3px solid white;
+
+    transition: 250ms;
+
+    cursor:default ;
+}
+
+.footer{
+    text-align: center;
+    color: black;
+
+    position: fixed;
+    bottom: 0;
+
+    width: 100vw;
+
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    background-color: rgb(52, 98, 135);
+}
+
+.revealed{
+    background-color: var(--revealed-cell-clr);
+    border: 1px solid var(--cell-clr);
+}
+
+.hud button{
+    cursor: pointer;
+    transition: 500ms;
+}
+
+.hud button:hover{
+    background-color: lightblue;
+}
+
+
+.info button{
+    /* border: none; */
+    background-color: rgb(255, 255, 255);
+    min-height: 50px;
+
+    text-align: center;
+}
+
+.hint-btn, .safe-click-btn, .undo-btn{
+    cursor: pointer;
+    opacity: 50%;
+    transition: 250ms;
+}
+
+.mine{
+    background-color: red;
+}
+
+.hinted{
+    background-color: aquamarine;
+    border: none;
+}
+
+/* .marked{
+    background-color: var(--marked-cell-clr);
+} */

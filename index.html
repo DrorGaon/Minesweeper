@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
     <title>Minesweeper</title>
 </head>
 <body onload="onInit()">
@@ -13,12 +13,22 @@
         <button onclick="setDifficulty(this)">Easy</button>
         <button onclick="setDifficulty(this)">Medium</button>
         <button onclick="setDifficulty(this)">Hard</button>
+        <div onclick="onInit()" class="smiley">😀</div>
     </div>
 
-    <div class="board" oncontextmenu="return false"></div>
+    <div class="info">
+        <button class="life-counter">Lives:<br><span>❤️❤️❤️</span></button>
+        <button onclick="hint()" class="hint-btn">Hints:<br><span>🔎🔎🔎</span></button>
+        <button onclick="safeClick()" class="safe-click-btn">Safe click!<br> <span>✔️✔️✔️</span></button>
+        <button onclick="undo()" class="undo-btn">Undo<br><span>↩️</span></button>
+    </div>
 
-    <script src="script.js"></script>
-    <script src="utils.js"></script>
+    <div class="main">
+        <div class="board" oncontextmenu="return false"></div>
+    </div>
+    <script src="js/script.js"></script>
+    <script src="js/extras.js"></script>
+    <script src="js/utils.js"></script>
 
     <div class="footer">Made by Dror Gaon</div>
 </body>
