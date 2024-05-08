@@ -15,11 +15,32 @@
 
 body{
     margin: 0;
-
+    
     background-color: var(--background-clr);
     color: var(--text-color);
 
     text-align: center;
+}
+
+.top-left-menu{
+    position: fixed;
+    left:1px;
+    top:1px;
+}
+
+.top-left-menu button{
+    text-align: left;
+}
+
+h1{
+    font-size: 40px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+    margin: 20px auto 5px;
+}
+
+.hud p{
+    margin: 5px auto 5px;
 }
 
 .smiley{
@@ -33,20 +54,21 @@ body{
 
 table{
     font-weight: bold;
+    font-size: large;
 
     border: 2px solid var(--border-color);
 
     padding: 5px;
 
-    margin: 20px auto;
+    margin: 20px auto 10px;
 }
 
 td{
     background-color: var(--cell-clr);
     text-align: center;
 
-    width: 30px;
-    height: 30px;
+    width: 33px;
+    height: 33px;
 
     border-top:3px solid white ;
     border-right:3px solid gray ;
@@ -60,7 +82,7 @@ td{
 
 .footer{
     text-align: center;
-    color: black;
+    color: white;
 
     position: fixed;
     bottom: 0;
@@ -70,7 +92,7 @@ td{
     padding-top: 10px;
     padding-bottom: 10px;
 
-    background-color: rgb(52, 98, 135);
+    background-color: rgb(77, 77, 77);
 }
 
 .revealed{
@@ -89,9 +111,10 @@ td{
 
 
 .info button{
-    /* border: none; */
     background-color: rgb(255, 255, 255);
+
     min-height: 50px;
+    min-width: 50px;
 
     text-align: center;
 }
@@ -102,15 +125,23 @@ td{
     transition: 250ms;
 }
 
+
+.undo-btn{
+    background-color: var(--background-clr);
+    border: none;
+    
+    font-size: 25px;
+}
+
 .mine{
     background-color: red;
 }
 
-.hinted{
-    background-color: aquamarine;
+.safe-cell{
+    background-color: rgb(94, 255, 94);
     border: none;
 }
 
-/* .marked{
-    background-color: var(--marked-cell-clr);
+/* .hint-btn:hover, .safe-click-btn:hover{
+    background-color: lightblue;
 } */

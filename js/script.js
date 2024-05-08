@@ -9,10 +9,17 @@ const LIFE = '❤️'
 const X = '❌'
 const HINT = '🔎'
 const SAFE_CLICK = '✔️'
+const TIMER = '⏱️'
+const NUM_COLORS = ['none', 'blue', 'green', 'red', 'darkblue', 'darkred', 'darkcyan', 'black', 'yellow']
 
 var gBoard
 var gIsFirstClick
 var gMineTimeout
+var gTimerInterval
+var gPrevMoves = []
+var gPrevGameStates = []
+
+localStorage.topEasyScore = ''
 
 var gLevel = {
     size: 8,
@@ -33,30 +40,26 @@ var gGame = {
     safeClicksRemaining: 3,
     isSafeClick: false,
 
-    prevMoves:[],
 }
 
 function onInit() {
-    var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
-    for(var i = 0; i < btns.length; i++){
-        btns[i].style.opacity = '50%'
-    }
-
-    var elSmiley = document.querySelector('.smiley')
-    elSmiley.innerText = SMILEY
 
     gGame.isOn = true
     gGame.shownCount = 0
     gGame.markedCount = 0
     gIsFirstClick = true
 
-    gGame.livesRemaining = 3
-    document.querySelector('.life-counter span').innerText = LIFE.repeat(3)
-
-
+    storeScore()
+    renderHUD(true)
     createBoard()
     renderBoard()
     setMinesNegsCount()
+
+    clearInterval(gTimerInterval)
+
+    gPrevMoves = []
+    gPrevGameStates = []
+
     // revealMines()
 }
 
@@ -72,7 +75,6 @@ function createBoard() {
             }
         }
     }
-    // gBoard[1][1].isMine = gBoard[2][3].isMine = true
     for (var i = 0; i < gLevel.mines; i++) {
         var currCell = findRandomNonMineCell()
         gBoard[currCell.i][currCell.j].isMine = true
@@ -85,10 +87,20 @@ function renderBoard() {
     for (var i = 0; i < gBoard.length; i++) {
         strHtml += '<tr>'
         for (var j = 0; j < gBoard[i].length; j++) {
-            strHtml += `<td class="cell-${i}-${j}"
+            var img 
+            var cellClass = ''
+            var currCell = gBoard[i][j]
+            if (currCell.isMarked) img = MARKED
+            else if (!currCell.isShown) img = ''
+            else if (currCell.isShown){
+                img = currCell.minesAroundCount
+                if (img === 0) img = ''
+                cellClass = 'revealed'
+            }
+            strHtml += `<td class="cell-${i}-${j} ${cellClass}"
             onclick="onCellClicked(this, ${i}, ${j})"
             oncontextmenu="onRightClick(this, ${i}, ${j})"
-            ></td>`
+            >${img}</td>`
         }
         strHtml += '</tr>'
     }
@@ -101,6 +113,7 @@ function setMinesNegsCount() {
         for (var j = 0; j < gBoard[i].length; j++) {
             var minesAround = countMinesAround(i, j)
             gBoard[i][j].minesAroundCount = minesAround
+            document.querySelector(getCellSelector(i,j)).style.color = NUM_COLORS[minesAround]
         }
     }
 }
@@ -132,11 +145,7 @@ function onCellClicked(elCell, rowIdx, colIdx) {
         onHintClick(rowIdx, colIdx)
         return
     }
-
-    if (currCell.isShown && !elCell.innerText) {
-        revealNegs(rowIdx, colIdx)
-    }
-
+    
     if (currCell.isMarked || !gGame.isOn || currCell.isShown) return
 
 
@@ -145,48 +154,72 @@ function onCellClicked(elCell, rowIdx, colIdx) {
         return
     }
 
+    updateHistory()
+
     currCell.isShown = true
     gGame.shownCount++
 
-    elCell.innerText = currCell.isMine ? MINE : currCell.minesAroundCount
+    elCell.innerText = currCell.minesAroundCount
     if (elCell.innerText === '0') {
         elCell.innerText = ''
         revealNegs(rowIdx, colIdx)
-    }
+    } 
     elCell.classList.add('revealed')
+    
     checkGameState()
 }
 
 function onRightClick(elCell, rowIdx, colIdx) {
     var currCell = gBoard[rowIdx][colIdx]
-    if (currCell.isShown || !gGame.isOn) return
+    if (currCell.isShown || !gGame.isOn || gIsFirstClick) return
 
-    if (currCell.isMarked) gGame.markedCount--
-    else gGame.markedCount++
+    updateHistory()
+
+    if (currCell.isMarked){
+        gGame.markedCount--
+        var elMineCounter = document.querySelector('.mine-counter span')
+        elMineCounter.innerText = gLevel.mines - gGame.markedCount
+    } 
+    else {
+        gGame.markedCount++
+        var elMineCounter = document.querySelector('.mine-counter span')
+        elMineCounter.innerText = gLevel.mines - gGame.markedCount
+    }
 
     currCell.isMarked = !currCell.isMarked
 
-    elCell.classList.toggle('marked')
     elCell.innerText = currCell.isMarked ? MARKED : ''
 
     checkGameState()
 }
 
 function checkGameState(isMine = false) {
+    
     if (isMine) {
         if(gGame.livesRemaining === 0){
             var elSmiley = document.querySelector('.smiley')
             elSmiley.innerText = DEAD_SMILY
             revealMines()
             gGame.isOn = false
+            clearInterval(gTimerInterval)
+            var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
+            for(var i = 0; i < btns.length; i++){
+                btns[i].style.opacity = '50%'
+            }        
         }
     }
-    var mines = (gLevel.size ** 2) - gLevel.mines
-    if (gGame.markedCount === gLevel.mines && gGame.shownCount === mines) {
+
+    var nonMineCells = (gLevel.size ** 2) - gLevel.mines
+    if (gGame.markedCount === gLevel.mines && gGame.shownCount === nonMineCells) {
         gGame.isOn = false
         var elSmiley = document.querySelector('.smiley')
         elSmiley.innerText = WINNER_SMILEY
-
+        clearInterval(gTimerInterval)
+        var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
+        for(var i = 0; i < btns.length; i++){
+            btns[i].style.opacity = '50%'
+        }
+        storeScore(false) 
     }
 }
 
@@ -232,5 +265,8 @@ function onFirstClick(rowIdx, colIdx) {
         btns[i].style.opacity = '100%'
     }
 
+    // revealMines()
+
+    timer()
 }
 

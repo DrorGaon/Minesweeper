@@ -8,8 +8,19 @@
 </head>
 <body onload="onInit()">
     <h1>Minesweeper</h1>
+
+    <div class="top-left-menu">
+        <button>
+
+            🥇 <br>
+            Easy: <span class="best-easy-score">No time yet...</span> <br>
+            Medium: <span class="best-medium-score">No time yet...</span> <br>
+            Hard: <span class="best-hard-score">No time yet...</span>
+        </button>
+    </div>
+
     <div class="hud">
-        <p>Choose difficulty</p>
+        <!-- <p>Choose difficulty</p> -->
         <button onclick="setDifficulty(this)">Easy</button>
         <button onclick="setDifficulty(this)">Medium</button>
         <button onclick="setDifficulty(this)">Hard</button>
@@ -19,13 +30,18 @@
     <div class="info">
         <button class="life-counter">Lives:<br><span>❤️❤️❤️</span></button>
         <button onclick="hint()" class="hint-btn">Hints:<br><span>🔎🔎🔎</span></button>
-        <button onclick="safeClick()" class="safe-click-btn">Safe click!<br> <span>✔️✔️✔️</span></button>
-        <button onclick="undo()" class="undo-btn">Undo<br><span>↩️</span></button>
+        <button onclick="safeClick()" class="safe-click-btn">Safe clicks:<br> <span>✔️✔️✔️</span></button>
+        <button class="mine-counter">Mines left: <br><span>14</span>🚩</button>
+        <button class="timer">Time: <br><span>0</span>⏱️</button>
     </div>
+
 
     <div class="main">
         <div class="board" oncontextmenu="return false"></div>
     </div>
+
+    <button onclick="undo()" class="undo-btn"><span>↩️</span></button>
+
     <script src="js/script.js"></script>
     <script src="js/extras.js"></script>
     <script src="js/utils.js"></script>
@@ -33,3 +49,4 @@
     <div class="footer">Made by Dror Gaon</div>
 </body>
 </html>
+
