@@ -19,7 +19,8 @@ var gTimerInterval
 var gPrevMoves = []
 var gPrevGameStates = []
 
-localStorage.topEasyScore = ''
+localStorage.mode = 'light'
+// localStorage.topEasyScore = ''
 
 var gLevel = {
     size: 8,
@@ -32,14 +33,15 @@ var gGame = {
     shownCount: 0,
     markedCount: 0,
     secsPassed: 0,
-
     livesRemaining: 3,
-
     hintsRemaining: 3,
-
+    isHint: false,
     safeClicksRemaining: 3,
-    isSafeClick: false,
-
+    exterminatesRemaining: 1,
+    megaHintsRemaining: 1,
+    megaHintFirstClick: undefined,
+    megaHintSecondClick: undefined,
+    isMegaHint: false,
 }
 
 function onInit() {
@@ -48,12 +50,17 @@ function onInit() {
     gGame.shownCount = 0
     gGame.markedCount = 0
     gIsFirstClick = true
+    gGame.livesRemaining = gGame.hintsRemaining = gGame.safeClicksRemaining = 3
+    gGame.exterminatesRemaining = gGame.megaHintsRemaining = 1
+    gGame.isHint = gGame.isMegaHint = false
 
-    storeScore()
+
+    storeScore(true)
     renderHUD(true)
     createBoard()
     renderBoard()
     setMinesNegsCount()
+    reColorCells()
 
     clearInterval(gTimerInterval)
 
@@ -146,8 +153,12 @@ function onCellClicked(elCell, rowIdx, colIdx) {
         return
     }
     
-    if (currCell.isMarked || !gGame.isOn || currCell.isShown) return
+    if(gGame.isMegaHint){
+        onMegaHintClick(rowIdx, colIdx)
+        return
+    }
 
+    if (currCell.isMarked || !gGame.isOn || currCell.isShown) return
 
     if(currCell.isMine){
         clickOnMine(elCell)
@@ -175,16 +186,11 @@ function onRightClick(elCell, rowIdx, colIdx) {
 
     updateHistory()
 
-    if (currCell.isMarked){
-        gGame.markedCount--
-        var elMineCounter = document.querySelector('.mine-counter span')
-        elMineCounter.innerText = gLevel.mines - gGame.markedCount
-    } 
-    else {
-        gGame.markedCount++
-        var elMineCounter = document.querySelector('.mine-counter span')
-        elMineCounter.innerText = gLevel.mines - gGame.markedCount
-    }
+    if (currCell.isMarked) gGame.markedCount-- 
+    else gGame.markedCount++
+
+    var elMineCounter = document.querySelector('.mine-counter span')
+    elMineCounter.innerText = gLevel.mines - gGame.markedCount
 
     currCell.isMarked = !currCell.isMarked
 
@@ -202,7 +208,7 @@ function checkGameState(isMine = false) {
             revealMines()
             gGame.isOn = false
             clearInterval(gTimerInterval)
-            var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
+            var btns = document.querySelectorAll('.power-btn')
             for(var i = 0; i < btns.length; i++){
                 btns[i].style.opacity = '50%'
             }        
@@ -215,7 +221,7 @@ function checkGameState(isMine = false) {
         var elSmiley = document.querySelector('.smiley')
         elSmiley.innerText = WINNER_SMILEY
         clearInterval(gTimerInterval)
-        var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
+        var btns = document.querySelectorAll('.power-btn')
         for(var i = 0; i < btns.length; i++){
             btns[i].style.opacity = '50%'
         }
@@ -260,13 +266,9 @@ function onFirstClick(rowIdx, colIdx) {
     setMinesNegsCount()
     gIsFirstClick = false
 
-    var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
+    var btns = document.querySelectorAll('.power-btn')
     for(var i = 0; i < btns.length; i++){
         btns[i].style.opacity = '100%'
     }
-
-    // revealMines()
-
     timer()
 }
-

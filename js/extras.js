@@ -91,6 +91,7 @@ function hint(){
     if(gGame.isHint) gGame.hintsRemaining--
     else gGame.hintsRemaining++
 
+
     var elHintsRemaining = document.querySelector('.hint-btn span')
     var str = HINT.repeat(gGame.hintsRemaining)
     str += X.repeat(3 - gGame.hintsRemaining)
@@ -132,6 +133,7 @@ function safeClick(){
 
 
     var rndCell = findRandomNonMineCell()
+    if (!rndCell) return
     var elCell = document.querySelector(getCellSelector(rndCell.i, rndCell.j))
     elCell.classList.add('safe-cell')
     setTimeout(() => {
@@ -142,8 +144,8 @@ function safeClick(){
 function timer(){
     gTimerInterval = setInterval(() => {
         var elTimer = document.querySelector('.timer span')
-        elTimer.innerText = +elTimer.innerText + 1 
-    }, 1000);
+        elTimer.innerText = (+elTimer.innerText + 0.01 ).toFixed(2)
+    }, 10);
 }
 
 function undo(){
@@ -158,24 +160,24 @@ function undo(){
     renderBoard()
     renderHUD(false)
     reColorCells()
-
 }
 
 function renderHUD(isRestart){
     
     if(isRestart){
-        var btns = document.querySelectorAll('.hint-btn, .safe-click-btn, .undo-btn')
+        var btns = document.querySelectorAll('.power-btn')
         for(var i = 0; i < btns.length; i++){
             btns[i].style.opacity = '50%'
         }
         var elTimer = document.querySelector('.timer span')
         elTimer.innerText = 0 
-    
-        gGame.livesRemaining = gGame.hintsRemaining = gGame.safeClicksRemaining = 3
     }
 
     var elSmiley = document.querySelector('.smiley')
     elSmiley.innerText = SMILEY
+
+    var elMineCounter = document.querySelector('.mine-counter span')
+    elMineCounter.innerText = gLevel.mines - gGame.markedCount
 
     document.querySelector('.life-counter span').innerText = LIFE.repeat(gGame.livesRemaining) + X.repeat(3 - gGame.livesRemaining)
     document.querySelector('.hint-btn span').innerText = HINT.repeat(gGame.hintsRemaining) + X.repeat(3 - gGame.hintsRemaining)
@@ -198,37 +200,134 @@ function reColorCells(){
 }
 
 function storeScore(isRestart){
-    var score = document.querySelector('.timer span').innerText
+    if (isRestart){
+        document.querySelector('.best-easy-score').innerText = (!localStorage.topEasyScore) ? 'No time yet' : localStorage.topEasyScore 
+        document.querySelector('.best-medium-score').innerText = (!localStorage.topMediumScore) ? 'No time yet' : localStorage.topMediumScore 
+        document.querySelector('.best-hard-score').innerText = (!localStorage.topHardScore) ? 'No time yet' : localStorage.topHardScore 
+        return
+    }
+
+    var score = +document.querySelector('.timer span').innerText
     switch (gLevel.size) {
         case 4:
-            console.log(score)
             if (!localStorage.topEasyScore) {
-                document.querySelector('.best-easy-score').innerText = 'No time yet'  
-            }
-            if(score < +localStorage.topEasyScore) {
-                console.log('test')
                 localStorage.topEasyScore = score
-                document.querySelector('.best-easy-score').innerText = localStorage.topEasyScore
+            }
+            else if(score < +localStorage.topEasyScore) {
+                localStorage.topEasyScore = score
             } 
+            document.querySelector('.best-easy-score').innerText = localStorage.topEasyScore 
             break;
         case 8:
             if (!localStorage.topMediumScore) {
-                document.querySelector('.best-medium-score').innerText = 'No time yet'  
+                localStorage.topMediumScore = score
             }
             else if(score < +localStorage.topMediumScore) {
                 localStorage.topMediumScore = score
-                document.querySelector('.best-medium-score').innerText = localStorage.topMediumScore
             } 
+            document.querySelector('.best-medium-score').innerText = localStorage.topMediumScore 
             break;
         case 12:
             if (!localStorage.topHardScore) {
-                document.querySelector('.best-hard-score').innerText = 'No time yet'  
+                localStorage.topHardScore = score
             }
             else if(score < +localStorage.topHardScore) {
                 localStorage.topHardScore = score
-                document.querySelector('.best-hard-score').innerText = localStorage.topHardScore
             } 
+            document.querySelector('.best-hard-score').innerText = localStorage.topHardScore 
             break;
     }
 }
 
+function exterminate(){
+    if (!gGame.isOn || gIsFirstClick || gGame.exterminatesRemaining === 0) return
+    var mines = []
+    for(var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[i].length; j++){
+            if(gBoard[i][j].isMine && !gBoard[i][j].isMarked) mines.push(gBoard[i][j])
+        }
+    }
+    if(!mines.length) return
+    var length = Math.min(mines.length, 3)
+    for (var i = 0; i < length; i++){
+        var idx = getRandomInt(0, mines.length)
+        mines[idx].isMine = false
+        mines.splice(idx, 1)
+        
+        gGame.markedCount++
+        gGame.shownCount--
+    }
+    gGame.exterminatesRemaining--
+
+    var elExtBtn = document.querySelector('.mine-ext-btn')
+    elExtBtn.style.opacity = '50%'
+
+    var elMineCounter = document.querySelector('.mine-counter span')
+    elMineCounter.innerText = gLevel.mines - gGame.markedCount
+
+    setMinesNegsCount()
+    renderBoard()
+    reColorCells()
+}
+
+function megaHint(){
+    if (!gGame.isOn || gIsFirstClick || gGame.megaHintsRemaining === 0) return
+    
+    gGame.isMegaHint = !gGame.isMegaHint
+
+    var elMegaHint = document.querySelector('.mega-hint-btn')
+    if (gGame.isMegaHint) elMegaHint.style.opacity = '50%'
+    else elMegaHint.style.opacity = '100%'    
+}
+
+function onMegaHintClick(rowIdx, colIdx){
+    if(!gGame.megaHintFirstClick){
+        gGame.megaHintFirstClick = {i:rowIdx, j:colIdx}
+        return
+    } else if (!gGame.megaHintSecondClick){
+        gGame.megaHintSecondClick = {i:rowIdx, j:colIdx}
+    }
+
+    var startIdx = {
+        i: (Math.min(gGame.megaHintFirstClick.i, gGame.megaHintSecondClick.i)),
+        j: (Math.min(gGame.megaHintFirstClick.j, gGame.megaHintSecondClick.j)),
+    }
+    var endIdx = {
+        i: (Math.max(gGame.megaHintFirstClick.i, gGame.megaHintSecondClick.i)),
+        j: (Math.max(gGame.megaHintFirstClick.j, gGame.megaHintSecondClick.j)),
+    }
+
+    var megaHintCells = []
+    for (var i = startIdx.i; i <= endIdx.i; i++){
+        for (var j = startIdx.j; j <= endIdx.j; j++){
+            if(gBoard[i][j].isShown || gBoard[i][j].isMarked) continue
+            megaHintCells.push({i, j})
+            var currElCell = document.querySelector(getCellSelector(i, j))
+            currElCell.innerText = gBoard[i][j].isMine ? MINE : gBoard[i][j].minesAroundCount
+        }
+    }
+
+    setTimeout(() => {
+        for (var i = 0; i < megaHintCells.length; i++){
+            var currElCell = document.querySelector(getCellSelector(megaHintCells[i].i, megaHintCells[i].j))
+            currElCell.innerText = ''
+        }
+        gGame.isOn = true
+    }, 1500);  
+
+    gGame.isMegaHint = false
+    gGame.megaHintsRemaining--
+}
+
+function setMode(mode){
+    if(localStorage.mode === mode) return
+
+    var body = document.body
+    if(mode === 'light'){
+        body.classList.remove('dark-mode')
+        localStorage.mode = mode
+    } else {
+        body.classList.add('dark-mode')
+        localStorage.mode = mode
+    }
+}
